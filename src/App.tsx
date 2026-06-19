@@ -169,7 +169,7 @@ function ListPage({ levels, selectedIdx, onSelect, editors, dark }: {
                     <tr>
                       <th className="percent">%</th>
                       <th className="player">Player</th>
-                      <th className="hz">Hz</th>
+                      <th className="hz">FPS</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -186,7 +186,7 @@ function ListPage({ levels, selectedIdx, onSelect, editors, dark }: {
                           )}
                         </td>
                         <td className="hz">
-                          {rec.hz}Hz
+                          {rec.hz === 'CBF' ? 'CBF' : `${rec.hz}FPS`}
                           {rec.mobile && <Smartphone className="inline w-3 h-3 ml-1 opacity-60" />}
                         </td>
                       </tr>
@@ -231,7 +231,7 @@ function ListPage({ levels, selectedIdx, onSelect, editors, dark }: {
             <li>Click sounds OR CPS counter (preferably both)</li>
             <li>The level must match the ID listed on the website</li>
             <li>Level must not be edited in any way</li>
-            <li>FPS is within 60 - 360</li>
+            <li>FPS is within 0 - CBF</li>
           </ul>
         </div>
       </div>

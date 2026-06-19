@@ -14,7 +14,7 @@
 export interface LevelRecord {
   player: string;
   percent: number;
-  hz: number;
+  hz: number | 'CBF';
   mobile: boolean;
   link: string;
 }
