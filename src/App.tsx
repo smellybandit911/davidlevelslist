@@ -109,7 +109,7 @@ function ListPage({ levels, selectedIdx, onSelect, editors, dark }: {
 
             <p className="authors">
               Verified by <span className="verifier-name">{selectedLevel.verifier}</span>
-              {selectedLevel.method === 'S' && <span className="method-badge">Ship</span>}
+              {selectedLevel.method === 'S' && <span className="method-badge">Spam</span>}
             </p>
 
             {/* YouTube embed */}
