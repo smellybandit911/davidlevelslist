@@ -16,6 +16,7 @@ export interface Editor {
 const editors: Editor[] = [
   { role: "owner", name: "SmellY", link: null },
   { role: "dev", name: "vvKyro", link: null },
+  { role: "In Our Hearts", name: "RIP Zod", link: null },
 ];
 
 export default editors;
