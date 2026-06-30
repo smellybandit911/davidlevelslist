@@ -5,9 +5,9 @@ import editors from './data/editors';
 import dpllLevels from './data/levels-dpll';
 import dpllPlayers from './data/players-dpll';
 import { Level, Player, Editor, score, localize } from './lib/types';
-import { Sun, Moon, Smartphone, Trophy, List, Crown } from 'lucide-react';
+import { Sun, Moon, Smartphone, Trophy, List, Crown, Dices } from 'lucide-react';
 
-type Tab = 'list' | 'leaderboard';
+type Tab = 'list' | 'leaderboard' | 'roulette';
 type ListType = 'dll' | 'dpll';
 
 export default function App() {
@@ -78,6 +78,13 @@ export default function App() {
             <Trophy className="w-3.5 h-3.5 inline-block mr-1 -mt-0.5" />
             Leaderboard
           </button>
+          <button
+            className={tab === 'roulette' ? 'active' : ''}
+            onClick={() => { setTab('roulette'); setSelectedIdx(null); }}
+          >
+            <Dices className="w-3.5 h-3.5 inline-block mr-1 -mt-0.5" />
+            Roulette
+          </button>
           <button onClick={toggleDark} title="Toggle dark mode">
             {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
@@ -87,10 +94,148 @@ export default function App() {
       {/* Pages */}
       {tab === 'list' ? (
         <ListPage levels={currentLevels} selectedIdx={selectedIdx} onSelect={handleSelectLevel} editors={editors} dark={dark} />
-      ) : (
+      ) : tab === 'leaderboard' ? (
         <LeaderboardPage players={currentPlayers} levels={currentLevels} dark={dark} />
+      ) : (
+        <RoulettePage levels={levels} dark={dark} />
       )}
     </div>
+  );
+}
+
+// ========== ROULETTE PAGE ==========
+
+function RoulettePage({ levels, dark }: { levels: Level[]; dark: boolean }) {
+  const eligible = levels.filter((l) => l.name !== 'david got pranked');
+  const [spinCount, setSpinCount] = useState(0);
+  const [currentLevel, setCurrentLevel] = useState<Level | null>(null);
+  const [inputPercent, setInputPercent] = useState('');
+  const [message, setMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
+  const [completedSpins, setCompletedSpins] = useState<{ level: Level; percent: number; minPercent: number }[]>([]);
+
+  const minPercent = 10 + spinCount * 5;
+
+  const spin = () => {
+    const random = eligible[Math.floor(Math.random() * eligible.length)];
+    setCurrentLevel(random);
+    setInputPercent('');
+    setMessage({ type: 'info', text: `Minimum percent: ${minPercent}%. Get above this to advance!` });
+  };
+
+  const submitPercent = () => {
+    const val = parseInt(inputPercent, 10);
+    if (isNaN(val)) {
+      setMessage({ type: 'error', text: 'Enter a valid number.' });
+      return;
+    }
+    if (val < 0 || val > 100) {
+      setMessage({ type: 'error', text: 'Percent must be between 0 and 100.' });
+      return;
+    }
+    if (val <= minPercent) {
+      setMessage({ type: 'error', text: `You need above ${minPercent}%. You got ${val}%. Try again!` });
+      return;
+    }
+    if (!currentLevel) return;
+    setCompletedSpins([{ level: currentLevel, percent: val, minPercent }, ...completedSpins]);
+    setSpinCount(spinCount + 1);
+    setCurrentLevel(null);
+    setInputPercent('');
+    setMessage({ type: 'success', text: `Cleared with ${val}%! Next minimum: ${10 + (spinCount + 1) * 5}%` });
+  };
+
+  const reset = () => {
+    setSpinCount(0);
+    setCurrentLevel(null);
+    setInputPercent('');
+    setMessage(null);
+    setCompletedSpins([]);
+  };
+
+  return (
+    <main className="page-roulette">
+      <div className="roulette-container">
+        <div className="roulette-header">
+          <Dices className="w-7 h-7 text-yellow-500" />
+          <h1>David Roulette</h1>
+        </div>
+        <p className="roulette-subtitle">
+          Spin to get a random level. Each clear raises the minimum by 5%. Don't get "david got pranked" — it's excluded!
+        </p>
+
+        <div className="roulette-controls">
+          <button className="spin-btn" onClick={spin} disabled={!!currentLevel}>
+            <Dices className="w-4 h-4 inline-block mr-1 -mt-0.5" />
+            Spin
+          </button>
+          <span className="min-percent-badge">Min: {minPercent}%</span>
+          <span className="spin-count-badge">Spins: {spinCount}</span>
+          {spinCount > 0 && (
+            <button className="reset-btn" onClick={reset}>
+              Reset
+            </button>
+          )}
+        </div>
+
+        {currentLevel && (
+          <div className="roulette-level-card">
+            <div className="roulette-level-rank">#{currentLevel.id}</div>
+            <div className="roulette-level-name">{currentLevel.name}</div>
+            <div className="roulette-level-meta">
+              Verified by <span className="verifier-name">{currentLevel.verifier}</span>
+              {currentLevel.method === 'S' && <span className="method-badge">Spam</span>}
+            </div>
+            {currentLevel.gdLevelId ? (
+              <a
+                className="roulette-gd-link"
+                href={`https://gdbrowser.com/${currentLevel.gdLevelId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                View on GDBrowser (ID: {currentLevel.gdLevelId})
+              </a>
+            ) : null}
+
+            <div className="roulette-input-row">
+              <input
+                type="number"
+                min={0}
+                max={100}
+                placeholder={`Your % (must be > ${minPercent})`}
+                value={inputPercent}
+                onChange={(e) => setInputPercent(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && submitPercent()}
+              />
+              <button className="submit-btn" onClick={submitPercent}>
+                Submit
+              </button>
+            </div>
+          </div>
+        )}
+
+        {message && (
+          <div className={`roulette-message ${message.type}`}>
+            {message.text}
+          </div>
+        )}
+
+        {completedSpins.length > 0 && (
+          <div className="roulette-history">
+            <h3>History</h3>
+            <ul>
+              {completedSpins.map((s, i) => (
+                <li key={i}>
+                  <span className="hist-rank">#{s.level.id}</span>
+                  <span className="hist-name">{s.level.name}</span>
+                  <span className="hist-percent">{s.percent}%</span>
+                  <span className="hist-min">min {s.minPercent}%</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    </main>
   );
 }
 
