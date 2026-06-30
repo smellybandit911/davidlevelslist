@@ -1,25 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import levels from './data/levels';
 import players from './data/players';
 import editors from './data/editors';
 import dpllLevels from './data/levels-dpll';
 import dpllPlayers from './data/players-dpll';
 import { Level, Player, Editor, score, localize } from './lib/types';
-import { Sun, Moon, Smartphone, Trophy, List, Crown, Dices, MessageSquare, Star, Send, Loader2 } from 'lucide-react';
-import { supabase } from './lib/supabase';
+import { Sun, Moon, Smartphone, Trophy, List, Crown, Dices } from 'lucide-react';
 
 type Tab = 'list' | 'leaderboard' | 'roulette';
 type ListType = 'dll' | 'dpll';
-
-interface LevelReview {
-  id: string;
-  level_key: string;
-  author_name: string;
-  comment: string;
-  difficulty_rating: number;
-  enjoyment_rating: number;
-  created_at: string;
-}
 
 function safeYoutubeEmbedUrl(url: string): string | null {
   try {
@@ -44,268 +33,6 @@ function youtubeWatchUrl(embedUrl: string): string | null {
     // invalid URL
   }
   return null;
-}
-
-function timeAgo(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  if (days < 30) return `${days}d ago`;
-  const months = Math.floor(days / 30);
-  if (months < 12) return `${months}mo ago`;
-  return `${Math.floor(months / 12)}y ago`;
-}
-
-function RatingDots({ value, max = 10 }: { value: number; max?: number }) {
-  return (
-    <span className="rating-dots">
-      {Array.from({ length: max }, (_, i) => (
-        <span key={i} className={`rating-dot ${i < value ? 'filled' : ''}`} />
-      ))}
-    </span>
-  );
-}
-
-// ========== REVIEWS SECTION ==========
-
-function ReviewsSection({ levelKey }: { levelKey: string }) {
-  const [reviews, setReviews] = useState<LevelReview[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [submitLoading, setSubmitLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [showForm, setShowForm] = useState(false);
-
-  const [authorName, setAuthorName] = useState('');
-  const [comment, setComment] = useState('');
-  const [difficultyRating, setDifficultyRating] = useState(5);
-  const [enjoymentRating, setEnjoymentRating] = useState(5);
-  const [hoverDiff, setHoverDiff] = useState<number | null>(null);
-  const [hoverEnj, setHoverEnj] = useState<number | null>(null);
-
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-    setReviews([]);
-    setShowForm(false);
-    setSubmitSuccess(false);
-    setSubmitError(null);
-
-    supabase
-      .from('level_reviews')
-      .select('*')
-      .eq('level_key', levelKey)
-      .order('created_at', { ascending: false })
-      .then(({ data, error: err }) => {
-        setLoading(false);
-        if (err) {
-          setError('Failed to load reviews.');
-          return;
-        }
-        setReviews((data as LevelReview[]) ?? []);
-      });
-  }, [levelKey]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmedName = authorName.trim();
-    const trimmedComment = comment.trim();
-    if (!trimmedName) { setSubmitError('Please enter your name.'); return; }
-    if (!trimmedComment) { setSubmitError('Please enter a comment.'); return; }
-    if (trimmedName.length > 50) { setSubmitError('Name must be 50 characters or fewer.'); return; }
-    if (trimmedComment.length > 1000) { setSubmitError('Comment must be 1000 characters or fewer.'); return; }
-
-    setSubmitLoading(true);
-    setSubmitError(null);
-
-    const { data, error: err } = await supabase
-      .from('level_reviews')
-      .insert({
-        level_key: levelKey,
-        author_name: trimmedName,
-        comment: trimmedComment,
-        difficulty_rating: difficultyRating,
-        enjoyment_rating: enjoymentRating,
-      })
-      .select()
-      .single();
-
-    setSubmitLoading(false);
-
-    if (err) {
-      setSubmitError('Failed to submit review. Please try again.');
-      return;
-    }
-
-    setReviews((prev) => [data as LevelReview, ...prev]);
-    setAuthorName('');
-    setComment('');
-    setDifficultyRating(5);
-    setEnjoymentRating(5);
-    setShowForm(false);
-    setSubmitSuccess(true);
-    setTimeout(() => setSubmitSuccess(false), 3000);
-  };
-
-  const avgDiff = reviews.length
-    ? (reviews.reduce((s, r) => s + r.difficulty_rating, 0) / reviews.length).toFixed(1)
-    : null;
-  const avgEnj = reviews.length
-    ? (reviews.reduce((s, r) => s + r.enjoyment_rating, 0) / reviews.length).toFixed(1)
-    : null;
-
-  return (
-    <div className="reviews-section">
-      <div className="reviews-header-row">
-        <div className="reviews-title">
-          <MessageSquare className="w-4 h-4" />
-          <h2>Community Reviews</h2>
-          {reviews.length > 0 && <span className="reviews-count">{reviews.length}</span>}
-        </div>
-        {reviews.length > 0 && (
-          <div className="reviews-averages">
-            <span className="avg-badge diff-avg">
-              <Star className="w-3 h-3" /> Difficulty: {avgDiff}/10
-            </span>
-            <span className="avg-badge enj-avg">
-              <Star className="w-3 h-3" /> Enjoyment: {avgEnj}/10
-            </span>
-          </div>
-        )}
-      </div>
-
-      {!showForm && (
-        <button className="add-review-btn" onClick={() => setShowForm(true)}>
-          + Leave a Review
-        </button>
-      )}
-
-      {showForm && (
-        <form className="review-form" onSubmit={handleSubmit}>
-          <div className="review-form-row">
-            <label>Your Name</label>
-            <input
-              type="text"
-              maxLength={50}
-              placeholder="Enter your name"
-              value={authorName}
-              onChange={(e) => setAuthorName(e.target.value)}
-            />
-          </div>
-
-          <div className="review-form-ratings">
-            <div className="review-rating-group">
-              <label>Difficulty</label>
-              <div className="star-picker">
-                {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-                  <button
-                    key={n}
-                    type="button"
-                    className={`star-btn ${n <= (hoverDiff ?? difficultyRating) ? 'active' : ''}`}
-                    onMouseEnter={() => setHoverDiff(n)}
-                    onMouseLeave={() => setHoverDiff(null)}
-                    onClick={() => setDifficultyRating(n)}
-                    title={`${n}/10`}
-                  >
-                    ★
-                  </button>
-                ))}
-                <span className="star-value">{hoverDiff ?? difficultyRating}/10</span>
-              </div>
-            </div>
-
-            <div className="review-rating-group">
-              <label>Enjoyment</label>
-              <div className="star-picker">
-                {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-                  <button
-                    key={n}
-                    type="button"
-                    className={`star-btn ${n <= (hoverEnj ?? enjoymentRating) ? 'active' : ''}`}
-                    onMouseEnter={() => setHoverEnj(n)}
-                    onMouseLeave={() => setHoverEnj(null)}
-                    onClick={() => setEnjoymentRating(n)}
-                    title={`${n}/10`}
-                  >
-                    ★
-                  </button>
-                ))}
-                <span className="star-value">{hoverEnj ?? enjoymentRating}/10</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="review-form-row">
-            <label>Comment</label>
-            <textarea
-              maxLength={1000}
-              placeholder="Share your thoughts about this level..."
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              rows={3}
-            />
-            <span className="char-count">{comment.length}/1000</span>
-          </div>
-
-          {submitError && <p className="submit-error">{submitError}</p>}
-
-          <div className="review-form-actions">
-            <button type="button" className="cancel-btn" onClick={() => { setShowForm(false); setSubmitError(null); }}>
-              Cancel
-            </button>
-            <button type="submit" className="submit-review-btn" disabled={submitLoading}>
-              {submitLoading ? (
-                <><Loader2 className="w-3.5 h-3.5 inline-block mr-1 animate-spin" />Submitting...</>
-              ) : (
-                <><Send className="w-3.5 h-3.5 inline-block mr-1" />Submit Review</>
-              )}
-            </button>
-          </div>
-        </form>
-      )}
-
-      {submitSuccess && (
-        <div className="submit-success-banner">Review submitted! Thanks for sharing.</div>
-      )}
-
-      {loading ? (
-        <div className="reviews-loading">
-          <Loader2 className="w-4 h-4 animate-spin" /> Loading reviews...
-        </div>
-      ) : error ? (
-        <p className="reviews-error">{error}</p>
-      ) : reviews.length === 0 ? (
-        <p className="no-reviews">No reviews yet. Be the first to leave one!</p>
-      ) : (
-        <ul className="reviews-list">
-          {reviews.map((r) => (
-            <li key={r.id} className="review-item">
-              <div className="review-top">
-                <span className="review-author">{r.author_name}</span>
-                <span className="review-time">{timeAgo(r.created_at)}</span>
-              </div>
-              <div className="review-ratings">
-                <span className="review-rating-chip diff">
-                  Difficulty <strong>{r.difficulty_rating}/10</strong>
-                  <RatingDots value={r.difficulty_rating} />
-                </span>
-                <span className="review-rating-chip enj">
-                  Enjoyment <strong>{r.enjoyment_rating}/10</strong>
-                  <RatingDots value={r.enjoyment_rating} />
-                </span>
-              </div>
-              <p className="review-comment">{r.comment}</p>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
 }
 
 export default function App() {
@@ -391,7 +118,7 @@ export default function App() {
 
       {/* Pages */}
       {tab === 'list' ? (
-        <ListPage levels={currentLevels} listType={listType} selectedIdx={selectedIdx} onSelect={handleSelectLevel} editors={editors} dark={dark} />
+        <ListPage levels={currentLevels} selectedIdx={selectedIdx} onSelect={handleSelectLevel} editors={editors} dark={dark} />
       ) : tab === 'leaderboard' ? (
         <LeaderboardPage players={currentPlayers} levels={currentLevels} dark={dark} />
       ) : (
@@ -547,9 +274,8 @@ function RoulettePage({ levels, dark }: { levels: Level[]; dark: boolean }) {
 
 // ========== LIST PAGE ==========
 
-function ListPage({ levels, listType, selectedIdx, onSelect, editors, dark }: {
+function ListPage({ levels, selectedIdx, onSelect, editors, dark }: {
   levels: Level[];
-  listType: string;
   selectedIdx: number | null;
   onSelect: (idx: number) => void;
   editors: Editor[];
@@ -560,7 +286,6 @@ function ListPage({ levels, listType, selectedIdx, onSelect, editors, dark }: {
   const rawVideoUrl = selectedLevel?.videoUrl || '';
   const videoUrl = safeYoutubeEmbedUrl(rawVideoUrl);
   const videoWatchUrl = videoUrl ? youtubeWatchUrl(videoUrl) : null;
-  const levelKey = selectedLevel ? `${listType}:${selectedLevel.id}` : null;
 
   return (
     <main className="page-list">
@@ -685,9 +410,6 @@ function ListPage({ levels, listType, selectedIdx, onSelect, editors, dark }: {
                 <p className="no-records">No records yet.</p>
               )}
             </div>
-
-            {/* Community Reviews */}
-            {levelKey && <ReviewsSection levelKey={levelKey} />}
           </div>
         ) : (
           <div className="empty-state">
