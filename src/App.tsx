@@ -112,8 +112,8 @@ function RoulettePage({ levels, dark }: { levels: Level[]; dark: boolean }) {
   const [inputPercent, setInputPercent] = useState('');
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
   const [completedSpins, setCompletedSpins] = useState<{ level: Level; percent: number; minPercent: number }[]>([]);
-
-  const minPercent = 10 + spinCount * 5;
+  // The actual enforced minimum for the current spin (may be higher than the scheduled baseline)
+  const [minPercent, setMinPercent] = useState(10);
 
   const spin = () => {
     const random = eligible[Math.floor(Math.random() * eligible.length)];
@@ -137,15 +137,23 @@ function RoulettePage({ levels, dark }: { levels: Level[]; dark: boolean }) {
       return;
     }
     if (!currentLevel) return;
+
+    const nextSpinCount = spinCount + 1;
+    const scheduledNext = 10 + nextSpinCount * 5;
+    // If the score beats the *next* scheduled minimum, carry it forward as the new floor
+    const nextMin = val > scheduledNext ? val : scheduledNext;
+
     setCompletedSpins([{ level: currentLevel, percent: val, minPercent }, ...completedSpins]);
-    setSpinCount(spinCount + 1);
+    setSpinCount(nextSpinCount);
+    setMinPercent(nextMin);
     setCurrentLevel(null);
     setInputPercent('');
-    setMessage({ type: 'success', text: `Cleared with ${val}%! Next minimum: ${10 + (spinCount + 1) * 5}%` });
+    setMessage({ type: 'success', text: `Cleared with ${val}%! Next minimum: ${nextMin}%` });
   };
 
   const reset = () => {
     setSpinCount(0);
+    setMinPercent(10);
     setCurrentLevel(null);
     setInputPercent('');
     setMessage(null);
