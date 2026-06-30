@@ -10,16 +10,41 @@ import { Sun, Moon, Smartphone, Trophy, List, Crown, Dices } from 'lucide-react'
 type Tab = 'list' | 'leaderboard' | 'roulette';
 type ListType = 'dll' | 'dpll';
 
+function safeYoutubeEmbedUrl(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname === 'www.youtube.com' && parsed.pathname.startsWith('/embed/')) {
+      return url;
+    }
+  } catch {
+    // invalid URL
+  }
+  return null;
+}
+
+function youtubeWatchUrl(embedUrl: string): string | null {
+  try {
+    const parsed = new URL(embedUrl);
+    if (parsed.hostname === 'www.youtube.com' && parsed.pathname.startsWith('/embed/')) {
+      const videoId = parsed.pathname.replace('/embed/', '');
+      return `https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`;
+    }
+  } catch {
+    // invalid URL
+  }
+  return null;
+}
+
 export default function App() {
   const [tab, setTab] = useState<Tab>('list');
   const [listType, setListType] = useState<ListType>('dll');
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
-  const [dark, setDark] = useState(() => JSON.parse(localStorage.getItem('dark') || 'false'));
+  const [dark, setDark] = useState(() => localStorage.getItem('dark') === 'true');
 
   const toggleDark = () => {
     const next = !dark;
     setDark(next);
-    localStorage.setItem('dark', JSON.stringify(next));
+    localStorage.setItem('dark', next ? 'true' : 'false');
   };
 
   const handleSelectLevel = (idx: number) => {
@@ -258,7 +283,9 @@ function ListPage({ levels, selectedIdx, onSelect, editors, dark }: {
 }) {
   const selectedLevel = selectedIdx !== null ? levels[selectedIdx] : null;
   const records = selectedLevel?.records || [];
-  const videoUrl = selectedLevel?.videoUrl || '';
+  const rawVideoUrl = selectedLevel?.videoUrl || '';
+  const videoUrl = safeYoutubeEmbedUrl(rawVideoUrl);
+  const videoWatchUrl = videoUrl ? youtubeWatchUrl(videoUrl) : null;
 
   return (
     <main className="page-list">
@@ -304,16 +331,19 @@ function ListPage({ levels, selectedIdx, onSelect, editors, dark }: {
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowFullScreen
                   referrerPolicy="strict-origin-when-cross-origin"
+                  sandbox="allow-scripts allow-same-origin allow-presentation allow-popups"
                   title={`${selectedLevel.name} verification`}
                 />
-                <a
-                  className="video-link"
-                  href={videoUrl.replace('/embed/', '/watch?v=')}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Open in YouTube
-                </a>
+                {videoWatchUrl && (
+                  <a
+                    className="video-link"
+                    href={videoWatchUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Open in YouTube
+                  </a>
+                )}
               </div>
             ) : (
               <div className="video video-placeholder">
