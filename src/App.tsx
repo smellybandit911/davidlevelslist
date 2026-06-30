@@ -1,12 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import levels from './data/levels';
 import players from './data/players';
 import editors from './data/editors';
 import dpllLevels from './data/levels-dpll';
 import dpllPlayers from './data/players-dpll';
 import { Level, Player, Editor, score, localize } from './lib/types';
-import { supabase } from './lib/supabase';
-import { Sun, Moon, Smartphone, Trophy, List, Crown, Dices, Star, MessageSquare, Send } from 'lucide-react';
+import { Sun, Moon, Smartphone, Trophy, List, Crown, Dices } from 'lucide-react';
 
 type Tab = 'list' | 'leaderboard' | 'roulette';
 type ListType = 'dll' | 'dpll';
@@ -94,7 +93,7 @@ export default function App() {
 
       {/* Pages */}
       {tab === 'list' ? (
-        <ListPage levels={currentLevels} selectedIdx={selectedIdx} onSelect={handleSelectLevel} editors={editors} dark={dark} listType={listType} />
+        <ListPage levels={currentLevels} selectedIdx={selectedIdx} onSelect={handleSelectLevel} editors={editors} dark={dark} />
       ) : tab === 'leaderboard' ? (
         <LeaderboardPage players={currentPlayers} levels={currentLevels} dark={dark} />
       ) : (
@@ -248,189 +247,14 @@ function RoulettePage({ levels, dark }: { levels: Level[]; dark: boolean }) {
   );
 }
 
-// ========== LEVEL REVIEWS ==========
-
-interface Review {
-  id: string;
-  author: string;
-  comment: string;
-  difficulty: number;
-  enjoyment: number;
-  created_at: string;
-}
-
-function StarRating({ value, onChange, label }: { value: number; onChange: (v: number) => void; label: string }) {
-  return (
-    <div className="star-rating-group">
-      <span className="star-rating-label">{label}</span>
-      <div className="star-row">
-        {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-          <button
-            key={n}
-            type="button"
-            className={`star-btn ${n <= value ? 'filled' : ''}`}
-            onClick={() => onChange(n)}
-            aria-label={`${n}/10`}
-          >
-            <Star className="w-3.5 h-3.5" />
-          </button>
-        ))}
-        <span className="star-value">{value}/10</span>
-      </div>
-    </div>
-  );
-}
-
-function LevelReviews({ levelKey }: { levelKey: string }) {
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [showForm, setShowForm] = useState(false);
-  const [author, setAuthor] = useState('');
-  const [comment, setComment] = useState('');
-  const [difficulty, setDifficulty] = useState(5);
-  const [enjoyment, setEnjoyment] = useState(5);
-  const [submitMsg, setSubmitMsg] = useState<string | null>(null);
-
-  const fetchReviews = useCallback(async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('level_reviews')
-      .select('*')
-      .eq('level_key', levelKey)
-      .order('created_at', { ascending: false });
-    if (error) {
-      setError('Failed to load reviews.');
-    } else {
-      setReviews(data ?? []);
-      setError(null);
-    }
-    setLoading(false);
-  }, [levelKey]);
-
-  useEffect(() => { fetchReviews(); }, [fetchReviews]);
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!author.trim()) { setSubmitMsg('Please enter your name.'); return; }
-    if (!comment.trim()) { setSubmitMsg('Please write a comment.'); return; }
-    setSubmitting(true);
-    setSubmitMsg(null);
-    const { error } = await supabase.from('level_reviews').insert({
-      level_key: levelKey,
-      author: author.trim(),
-      comment: comment.trim(),
-      difficulty,
-      enjoyment,
-    });
-    if (error) {
-      setSubmitMsg('Failed to post review. Please try again.');
-    } else {
-      setAuthor('');
-      setComment('');
-      setDifficulty(5);
-      setEnjoyment(5);
-      setShowForm(false);
-      setSubmitMsg(null);
-      fetchReviews();
-    }
-    setSubmitting(false);
-  };
-
-  const avgDiff = reviews.length ? (reviews.reduce((s, r) => s + r.difficulty, 0) / reviews.length).toFixed(1) : null;
-  const avgEnj = reviews.length ? (reviews.reduce((s, r) => s + r.enjoyment, 0) / reviews.length).toFixed(1) : null;
-
-  return (
-    <div className="reviews-section">
-      <div className="reviews-header">
-        <div className="reviews-title-row">
-          <MessageSquare className="w-4 h-4" />
-          <h2>Reviews</h2>
-          {reviews.length > 0 && (
-            <span className="reviews-count">{reviews.length}</span>
-          )}
-        </div>
-        {avgDiff && (
-          <div className="reviews-averages">
-            <span className="avg-pill diff">Difficulty: {avgDiff}/10</span>
-            <span className="avg-pill enj">Enjoyment: {avgEnj}/10</span>
-          </div>
-        )}
-      </div>
-
-      {!showForm ? (
-        <button className="write-review-btn" onClick={() => setShowForm(true)}>
-          <Send className="w-3.5 h-3.5 inline-block mr-1 -mt-0.5" />
-          Write a Review
-        </button>
-      ) : (
-        <form className="review-form" onSubmit={submit}>
-          <input
-            className="review-input"
-            placeholder="Your name"
-            value={author}
-            onChange={(e) => setAuthor(e.target.value)}
-            maxLength={40}
-          />
-          <StarRating value={difficulty} onChange={setDifficulty} label="Difficulty" />
-          <StarRating value={enjoyment} onChange={setEnjoyment} label="Enjoyment" />
-          <textarea
-            className="review-textarea"
-            placeholder="Share your thoughts on this level..."
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            rows={3}
-            maxLength={500}
-          />
-          {submitMsg && <p className="review-form-error">{submitMsg}</p>}
-          <div className="review-form-actions">
-            <button type="submit" className="submit-review-btn" disabled={submitting}>
-              {submitting ? 'Posting...' : 'Post Review'}
-            </button>
-            <button type="button" className="cancel-review-btn" onClick={() => { setShowForm(false); setSubmitMsg(null); }}>
-              Cancel
-            </button>
-          </div>
-        </form>
-      )}
-
-      {loading ? (
-        <p className="reviews-loading">Loading reviews...</p>
-      ) : error ? (
-        <p className="reviews-error">{error}</p>
-      ) : reviews.length === 0 ? (
-        <p className="reviews-empty">No reviews yet. Be the first!</p>
-      ) : (
-        <ul className="reviews-list">
-          {reviews.map((r) => (
-            <li key={r.id} className="review-item">
-              <div className="review-meta">
-                <span className="review-author">{r.author}</span>
-                <span className="review-date">{new Date(r.created_at).toLocaleDateString()}</span>
-              </div>
-              <div className="review-ratings">
-                <span className="review-rating diff">Diff: {r.difficulty}/10</span>
-                <span className="review-rating enj">Enjoy: {r.enjoyment}/10</span>
-              </div>
-              <p className="review-comment">{r.comment}</p>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
-
 // ========== LIST PAGE ==========
 
-function ListPage({ levels, selectedIdx, onSelect, editors, dark, listType }: {
+function ListPage({ levels, selectedIdx, onSelect, editors, dark }: {
   levels: Level[];
   selectedIdx: number | null;
   onSelect: (idx: number) => void;
   editors: Editor[];
   dark: boolean;
-  listType: string;
 }) {
   const selectedLevel = selectedIdx !== null ? levels[selectedIdx] : null;
   const records = selectedLevel?.records || [];
@@ -556,7 +380,6 @@ function ListPage({ levels, selectedIdx, onSelect, editors, dark, listType }: {
                 <p className="no-records">No records yet.</p>
               )}
             </div>
-            <LevelReviews levelKey={`${listType}:${selectedLevel.id}`} />
           </div>
         ) : (
           <div className="empty-state">
