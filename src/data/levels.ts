@@ -58,14 +58,14 @@ const levels: Level[] = [
   { id: 26, name: "Skibidi David", verifier: "Vvkyro", method: "N", gdLevelId: 141405533, videoUrl: "https://www.youtube.com/embed/kCwTjo8eWu0", records: [] },
   { id: 27, name: "David memory", verifier: "Limboproductions", method: "N", gdLevelId: 142265748, videoUrl: "", records: [] },
   { id: 28, name: "Crystal David", verifier: "CeaserWare", method: "N", gdLevelId: 141567476, videoUrl: "", records: [] },
-  { id: 35, name: "David's ego doesn't go down", verifier: "grok", method: "N", gdLevelId: 144023241, videoUrl: "https://www.youtube.com/embed/W_4DUNRLjxA", records: [] },
-  { id: 29, name: "david squad 2", verifier: "CeaserWare", method: "N", gdLevelId: 141579634, videoUrl: "", records: [] },
-  { id: 30, name: "David madness copy", verifier: "CeaserWare", method: "N", gdLevelId: 141498612, videoUrl: "", records: [] },
-  { id: 31, name: "david is 667", verifier: "CeaserWare", method: "N", gdLevelId: 142858267, videoUrl: "https://youtu.be/48Oqv21kcaM?si=MODwHKeFJ0W1PiGm", records: [] },
-  { id: 32, name: "davids gift", verifier: "vvKyro", method: "N", gdLevelId: 141498564, videoUrl: "", records: [] },
-  { id: 33, name: "davids drawing pad", verifier: "Vvkyro", method: "N", gdLevelId: 141411428, videoUrl: "https://www.youtube.com/embed/kCwTjo8eWu0", records: [] },
-  { id: 34, name: "Davids retray wave", verifier: "Atlas", method: "N", gdLevelId: 141751280, videoUrl: "https://www.youtube.com/embed/xcx8BtVwpOI", records: [] },
-  { id: 35, name: "david got pranked", verifier: "no verifier", method: "N", gdLevelId: 0, videoUrl: "", records: [] },
+  { id: 29, name: "David's ego doesn't go down", verifier: "grok", method: "N", gdLevelId: 144023241, videoUrl: "https://www.youtube.com/embed/W_4DUNRLjxA", records: [] },
+  { id: 30, name: "david squad 2", verifier: "CeaserWare", method: "N", gdLevelId: 141579634, videoUrl: "", records: [] },
+  { id: 31, name: "David madness copy", verifier: "CeaserWare", method: "N", gdLevelId: 141498612, videoUrl: "", records: [] },
+  { id: 32, name: "david is 667", verifier: "CeaserWare", method: "N", gdLevelId: 142858267, videoUrl: "https://youtu.be/48Oqv21kcaM?si=MODwHKeFJ0W1PiGm", records: [] },
+  { id: 33, name: "davids gift", verifier: "vvKyro", method: "N", gdLevelId: 141498564, videoUrl: "", records: [] },
+  { id: 34, name: "davids drawing pad", verifier: "Vvkyro", method: "N", gdLevelId: 141411428, videoUrl: "https://www.youtube.com/embed/kCwTjo8eWu0", records: [] },
+  { id: 35, name: "Davids retray wave", verifier: "Atlas", method: "N", gdLevelId: 141751280, videoUrl: "https://www.youtube.com/embed/xcx8BtVwpOI", records: [] },
+  { id: 36, name: "david got pranked", verifier: "no verifier", method: "N", gdLevelId: 0, videoUrl: "", records: [] },
 ];
 
 export default levels;
