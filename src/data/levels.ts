@@ -58,7 +58,7 @@ const levels: Level[] = [
   { id: 26, name: "Davids tray", verifier: "CeasareWare", method: "N", gdLevelId: 141487724, videoUrl: "", records: [] },
   { id: 27, name: "sakupen david", verifier: "vvKyro", method: "S", gdLevelId: 141470022, videoUrl: "https://www.youtube.com/embed/u813WosZVHg", records: [] },
   { id: 28, name: "David x copyable", verifier: "CeasarWare", method: "N", gdLevelId: 141569211, videoUrl: "", records: [] },
-  { id: 29, name: "Challenge for david", verifier: "SmellY", method: "N", gdLevelId: 128300549, videoUrl: "", records: [{ player: "CeasarWare", percent: 100, hz: 480, mobile: false link: " " }] },
+  { id: 29, name: "Challenge for david", verifier: "SmellY", method: "N", gdLevelId: 128300549, videoUrl: "", records: [{ player: "CeasarWare", percent: 100, hz: 480, mobile: false, link: " " }] },
   { id: 30, name: "david corridor z", verifier: "vvkyro", method: "N", gdLevelId: 141397537, videoUrl: "https://www.youtube.com/embed/kCwTjo8eWu0", records: [] },
   { id: 31, name: "Skibidi David", verifier: "Vvkyro", method: "N", gdLevelId: 141405533, videoUrl: "https://www.youtube.com/embed/kCwTjo8eWu0", records: [] },
   { id: 31, name: "David memory", verifier: "Limboproductions", method: "N", gdLevelId: 142265748, videoUrl: "", records: [] },
