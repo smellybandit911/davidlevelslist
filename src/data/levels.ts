@@ -52,7 +52,7 @@ const levels: Level[] = [
   { id: 20, name: "Davids Roasted", verifier: "CeasarWare", method: "S", gdLevelId: 142263634, videoUrl: "https://www.youtube.com/embed/w41aWXQtNIQ", records: [] },
   { id: 21, name: "David x lucas circles", verifier: "CeasarWare", method: "N", gdLevelId: 142327976, videoUrl: "https://www.youtube.com/embed/A_xtcCUSDJY", records: [] },
   { id: 22, name: "David Trials", verifier: "SmellY", method: "N", gdLevelId: 141387916, videoUrl: "https://www.youtube.com/embed/1HXznhoatSU", records: [] },
-  { id: 23, name: "23 jumps of divad, verifier: "David", method: "N", gdLevelId: 144917887, videoUrl: "https://www.youtube.com/watch?v=qit8QIZnr4c", records: [] },
+  { id: 23, name: "23 jumps of divad", verifier: "David", method: "N", gdLevelId: 144917887, videoUrl: "https://www.youtube.com/watch?v=qit8QIZnr4c", records: [] },
   { id: 24, name: "davidheavyballs", verifier: "limboproductions", method: "S", gdLevelId: 141885395, videoUrl: "https://www.youtube.com/embed/beXidhNRo_w", records: [] },
   { id: 25, name: "unnamed david memory", verifier: "CaesarWare", method: "N", gdLevelId: 143364539 , videoUrl: "https://youtu.be/uUzvbhFbgmA?si=pZAca_09Hsuj3aaF", records: [] },
   { id: 26, name: "Davids tray", verifier: "CeasareWare", method: "N", gdLevelId: 141487724, videoUrl: "", records: [] },
